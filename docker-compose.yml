@@ -1,0 +1,117 @@
+version: '2'
+
+services:
+  trust:
+    image: indigoiam/trustanchors
+    command: /bin/true
+
+  iam-be1:
+    container_name: iam-be1
+    image: indigoiam/iam-login-service:latest
+
+    environment:
+      TZ: Europe/Rome
+      IAM_JAVA_OPTS: -Dspring.profiles.active=h2-test
+      IAM_HOST: iam1.local.io
+      IAM_BASE_URL: https://iam1.local.io
+      IAM_ISSUER: https://iam1.local.io
+      IAM_USE_FORWARDED_HEADERS: "true"
+      IAM_NOTIFICATION_DISABLE: "true"
+      IAM_ORGANISATION_NAME: iam1
+
+    volumes_from:
+      - trust
+
+  iam-be2:
+    container_name: iam-be2
+    image: indigoiam/iam-login-service:latest
+
+    environment:
+      TZ: Europe/Rome
+      IAM_JAVA_OPTS: -Dspring.profiles.active=h2-test
+      IAM_HOST: iam2.local.io
+      IAM_BASE_URL: https://iam2.local.io
+      IAM_ISSUER: https://iam2.local.io
+      IAM_USE_FORWARDED_HEADERS: "true"
+      IAM_NOTIFICATION_DISABLE: "true"
+      IAM_ORGANISATION_NAME: iam2
+
+    volumes_from:
+      - trust
+
+  oidc-client:
+    container_name: oidc-client
+    image: argus/argus-oidc-client:latest
+
+    depends_on:
+      - iam-be1
+      - iam-be2
+
+    dns_search: local.io
+
+    environment:
+      TZ: Europe/Rome
+      OIDC_CLIENT_JAVA_OPTS: -Dspring.profiles.active=prod
+      CLIENT_USE_FORWARDED_HEADERS: "true"
+      CLIENT_ADDRESS: oidc-client
+
+    volumes:
+      - /dev/urandom:/dev/random
+      - ./application.yml:/argus-oidc-client/config/application.yml
+
+    volumes_from:
+      - trust
+
+  apache:
+    container_name: apache
+    build:
+      context: httpd
+
+    depends_on:
+      - oidc-client
+
+    dns_search: local.io
+
+    environment:
+      TZ: Europe/Rome
+
+    volumes:
+      - /dev/urandom:/dev/random
+
+    ports:
+      - "80:80"
+
+    networks:
+      default:
+        aliases:
+          - apache.local.io
+
+  iam-fe:
+    container_name: iam-fe
+    build:
+      context: nginx
+
+    depends_on:
+      - iam-be1
+      - iam-be2
+
+    dns_search: local.io
+
+    environment:
+      TZ: Europe/Rome
+      NGINX_HOST: iam-fe
+      NGINX_PORT: 443
+
+    ports:
+      - "443:443"
+
+    volumes:
+      - /dev/urandom:/dev/random
+
+    networks:
+      default:
+        aliases:
+          - iam-fe.local.io
+          - iam1.local.io
+          - iam2.local.io
+          - oidc-client.local.io

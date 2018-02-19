@@ -1,0 +1,8 @@
+oidc:
+  clients:
+      - issuer-url: https://iam1.local.io/
+        client-id: password-grant
+        client-secret: secret
+      - issuer-url: https://iam2.local.io/
+        client-id: password-grant
+        client-secret: secret
