@@ -94,6 +94,7 @@ services:
     depends_on:
       - iam-be1
       - iam-be2
+      - oidc-client
 
     dns_search: local.io
 
