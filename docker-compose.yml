@@ -39,9 +39,9 @@ services:
     volumes_from:
       - trust
 
-  oidc-client:
-    container_name: oidc-client
-    image: argus/argus-oidc-client:latest
+  esaco:
+    container_name: esaco
+    image: indigoiam/esaco:latest
 
     depends_on:
       - iam-be1
@@ -51,13 +51,12 @@ services:
 
     environment:
       TZ: Europe/Rome
-      OIDC_CLIENT_JAVA_OPTS: -Dspring.profiles.active=prod
-      CLIENT_USE_FORWARDED_HEADERS: "true"
-      CLIENT_ADDRESS: oidc-client
+      ESACO_USE_FORWARD_HEADERS: "true"
+      CLIENT_ADDRESS: esaco
 
     volumes:
       - /dev/urandom:/dev/random
-      - ./application.yml:/argus-oidc-client/config/application.yml
+      - ./application.yml:/esaco/config/application.yml
 
     volumes_from:
       - trust
@@ -68,7 +67,7 @@ services:
       context: httpd
 
     depends_on:
-      - oidc-client
+      - esaco
 
     dns_search: local.io
 
@@ -94,7 +93,7 @@ services:
     depends_on:
       - iam-be1
       - iam-be2
-      - oidc-client
+      - esaco
 
     dns_search: local.io
 
@@ -115,4 +114,4 @@ services:
           - iam-fe.local.io
           - iam1.local.io
           - iam2.local.io
-          - oidc-client.local.io
+          - esaco.local.io

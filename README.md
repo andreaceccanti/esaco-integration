@@ -1,4 +1,4 @@
-# OIDC client integration example
+# ESACO integration example
 
-A docker-compose setup for showcasing integration between mod-auth-oidc and the
-Argus oidc-client module.
+A docker-compose setup for showcasing integration between mod-auth-openidc and
+ESACO. 
