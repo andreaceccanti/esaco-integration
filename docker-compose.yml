@@ -61,29 +61,19 @@ services:
     volumes_from:
       - trust
 
-  apache:
-    container_name: apache
+  httpd:
+    container_name: httpd
     build:
       context: httpd
 
     depends_on:
       - esaco
 
-    dns_search: local.io
-
     environment:
       TZ: Europe/Rome
 
     volumes:
       - /dev/urandom:/dev/random
-
-    ports:
-      - "80:80"
-
-    networks:
-      default:
-        aliases:
-          - apache.local.io
 
   iam-fe:
     container_name: iam-fe
@@ -94,6 +84,7 @@ services:
       - iam-be1
       - iam-be2
       - esaco
+      - httpd
 
     dns_search: local.io
 
@@ -104,6 +95,7 @@ services:
 
     ports:
       - "443:443"
+      - "80:80"
 
     volumes:
       - /dev/urandom:/dev/random
@@ -115,3 +107,4 @@ services:
           - iam1.local.io
           - iam2.local.io
           - esaco.local.io
+          - apache.local.io
